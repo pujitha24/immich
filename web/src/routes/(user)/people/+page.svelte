@@ -2,7 +2,6 @@
   import { goto } from '$app/navigation';
   import { page } from '$app/state';
   import { scrollMemory } from '$lib/actions/scroll-memory';
-  import { shortcut } from '$lib/actions/shortcut';
   import UserPageLayout from '$lib/components/layouts/UserPageLayout.svelte';
   import OnEvents from '$lib/components/OnEvents.svelte';
   import { QueryParameter, SessionStorageKey } from '$lib/constants';
@@ -244,6 +243,14 @@
     }
   };
 
+  const onNameChangeKeydown = (event: KeyboardEvent) => {
+    // Enter confirms an IME composition (keyCode 229 on Safari); it must not submit the name
+    if (event.key === 'Enter' && !event.isComposing && event.keyCode !== 229) {
+      event.preventDefault();
+      (event.currentTarget as HTMLInputElement).blur();
+    }
+  };
+
   const onNameChangeInputUpdate = (event: Event) => {
     if (event.target) {
       newName = (event.target as HTMLInputElement).value;
@@ -344,7 +351,7 @@
             class="mt-2 w-full rounded-2xl border-gray-100 bg-white py-2 text-center text-sm text-primary placeholder-gray-400 dark:border-gray-900 dark:bg-immich-dark-gray"
             value={person.name}
             placeholder={$t('add_a_name')}
-            use:shortcut={{ shortcut: { key: 'Enter' }, onShortcut: (e) => e.currentTarget.blur() }}
+            onkeydown={onNameChangeKeydown}
             onfocusin={() => onNameChangeInputFocus(person)}
             onfocusout={() => onNameChangeSubmit(newName, person)}
             oninput={(event) => onNameChangeInputUpdate(event)}
